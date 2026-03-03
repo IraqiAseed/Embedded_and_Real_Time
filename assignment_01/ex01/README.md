@@ -1,8 +1,7 @@
 # Exercise 01 – Simple Calculator
 
-## Description
 
-Write a C program that:
+This program implements Simple Calculator in C
 
 - Reads two integers from the user
 - Performs the following operations:
