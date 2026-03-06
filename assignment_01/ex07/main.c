@@ -98,4 +98,6 @@ int main()
         printf("234 vs 4321 -> result = %d\n", res);
     else
         printf("234 vs 4321 -> error\n");
+
+    return 0;
 }
