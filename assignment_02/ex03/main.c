@@ -1,41 +1,5 @@
-#include <stdio.h>
 #include "reorderArray.h"
-int print_array(int arr[], size_t size)
-{
-    if (arr == NULL || size == 0)
-    {
-        return -1;
-    }
 
-    for (size_t i = 0; i < size; ++i)
-    {
-        printf("%d\t", arr[i]);
-    }
-    putchar('\n');
-    return 0;
-}
-
-void run_test(int arr[], size_t size, const char *name)
-{
-    size_t evens = 0;
-
-    printf("================================\n");
-    printf("Test: %s\n", name);
-
-    printf("Before: ");
-    print_array(arr, size);
-
-    if (array_reorder(arr, size, &evens) != 0)
-    {
-        printf("array_reorder failed\n");
-        return;
-    }
-
-    printf("After : ");
-    print_array(arr, size);
-
-    printf("Number of evens = %zu\n", evens);
-}
 
 int main(void)
 {
