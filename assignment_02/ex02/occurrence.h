@@ -3,7 +3,6 @@
 
 #include<stdio.h>
 
-//Function should not use 
 
 /**
  * Find the value with the maximum occurrence in an integer array, not using additional memory
