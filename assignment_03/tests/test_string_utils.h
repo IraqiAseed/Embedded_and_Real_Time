@@ -6,5 +6,6 @@ void run_palindrome_tests();
 void run_atoi_tests();
 void run_itoa_tests();
 void run_reverse_words_tests();
+void run_count_words_tests();
 
 #endif

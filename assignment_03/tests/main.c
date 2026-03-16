@@ -12,5 +12,6 @@ int main()
     run_atoi_tests();
     run_itoa_tests();
     run_reverse_words_tests();
+    run_count_words_tests();
     return 0;
 }

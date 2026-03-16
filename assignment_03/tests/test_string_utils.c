@@ -47,6 +47,39 @@ void test_reverse_words(char *str)
     printf("-----------------------------\n");
 }
 
+void test_count_words(char *str, int expected)
+{
+    {
+        int actual;
+
+        if (str == NULL)
+        {
+            printf("Original: [NULL]\n");
+        }
+        else
+        {
+            printf("Original: [%s]\n", str);
+        }
+
+        actual = CountWordsInString(str);
+
+        if (actual == expected)
+        {
+            printf("SUCCESS: [expected = %d, actual = %d]\n", expected, actual);
+        }
+        else if (actual == -1)
+        {
+            printf("ERROR: string is NULL\n");
+        }
+        else
+        {
+            printf("FAIL: [expected = %d, actual = %d]\n", expected, actual);
+        }
+
+        printf("-----------------------------\n");
+    }
+}
+
 void test_myatoi(char *str)
 {
     int myAtoiResult = 0;
@@ -55,7 +88,7 @@ void test_myatoi(char *str)
 
     if (status != 0)
     {
-        printf("FAIL: given string = \"%s\"  [MyAToI returned status %d]\n", str, status);
+        printf("Error:   [MyAToI returned status %d]\n", status);
         printf("-----------------------------\n");
         return;
     }
@@ -95,7 +128,7 @@ void test_myitoa(int number)
 
 void run_reverse_tests()
 {
-    // reverse tests
+    
     char rev1[] = "abcd";
     char rev2[] = "hello";
     char rev3[] = "a";
@@ -166,6 +199,7 @@ void run_atoi_tests()
 
     printf("\nMy Atoi tests\n");
     printf("=============================\n");
+
     test_myatoi(num1);
     test_myatoi(num2);
     test_myatoi(num3);
@@ -231,6 +265,9 @@ void run_reverse_words_tests()
     char str7[] = "a";
     char str8[] = "a b";
     char str9[] = "a  b";
+    printf("\nReverse words tests\n");
+    printf("=============================\n");
+    
     test_reverse_words(str1);
     test_reverse_words(str2);
     test_reverse_words(str3);
@@ -240,4 +277,18 @@ void run_reverse_words_tests()
     test_reverse_words(str7);
     test_reverse_words(str8);
     test_reverse_words(str9);
+}
+
+void run_count_words_tests()
+{
+    printf("\nCount words tests\n");
+    printf("=============================\n");
+    
+    test_count_words("hello", 1);
+    test_count_words("hello, world", 2);
+    test_count_words("hello embedded c", 3);
+    test_count_words("", 0);
+    test_count_words(" ", 0);
+    test_count_words("    ", 0);
+    test_count_words("    hello   world", 2);
 }

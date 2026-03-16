@@ -71,7 +71,7 @@ int MyAToI(char *str, int *number)
 
     while (*str != '\0')
     {
-        if (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\r' || *str == '\f' || *str == '\v')
+        if (IsWhiteSpace(*str))
         {
             if (found_digit == 0)
             {
@@ -218,8 +218,7 @@ int MyToA(int number, char *buffer)
     return 0;
 }
 
-
-//indexes version
+// indexes version
 int ReverseWordsInString(char *str)
 {
     if (str == NULL)
@@ -227,13 +226,13 @@ int ReverseWordsInString(char *str)
         return -1;
     }
 
-    int start = 0; //start of word index
-    int end = 0; //end of word index
+    int start = 0; // start of word index
+    int end = 0;   // end of word index
     int word_length = 0;
     char tmp;
     int next_index = 0;
     char *p = str;
-    
+
     ReverseStr(str);
 
     while (*p != '\0')
@@ -243,7 +242,7 @@ int ReverseWordsInString(char *str)
             p++;
             start++;
         }
-        while (*p != '\0' && *p != ' ' )
+        while (*p != '\0' && *p != ' ')
         {
             p++;
             word_length++;
@@ -268,8 +267,7 @@ int ReverseWordsInString(char *str)
     return 0;
 }
 
-
-//pointer version
+// pointer version
 int ReverseWordsInString_pointerVersion(char *str)
 {
     if (str == NULL)
@@ -302,4 +300,39 @@ int ReverseWordsInString_pointerVersion(char *str)
     }
 
     return 0;
+}
+int IsWhiteSpace(char c)
+{
+    return (c == ' '  ||
+            c == '\t' ||
+            c == '\n' ||
+            c == '\r' ||
+            c == '\v' ||
+            c == '\f');
+}
+int CountWordsInString(char *str)
+{
+    if (str == NULL)
+    {
+        return -1;
+    }
+
+    int in_word = 0;
+    int counter = 0;
+
+    while (*str)
+    {
+        if (IsWhiteSpace(*str))
+        {
+            in_word = 0;
+        }
+        else if (in_word == 0)
+        {
+            counter++;
+            in_word = 1;
+        }
+        str++;
+    }
+
+    return counter;
 }

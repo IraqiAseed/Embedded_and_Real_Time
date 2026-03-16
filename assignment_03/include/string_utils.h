@@ -109,7 +109,53 @@ int MyToA(int number,char* buffer);
 int MyToA_V2(int number,char* buffer); 
 
 
+
+/**
+ * Reverses the order of words in a null-terminated string.
+ *
+ * The function reverses the order of words in the given string in-place.
+ * Words are sequences of non-space characters separated by spaces.
+ * The operation is performed without allocating additional memory.
+ *
+ * @param str
+ * Pointer to a null-terminated string to be modified.
+ *
+ * @return
+ * 0 on success.
+ * -1 if the input pointer is NULL.
+ *
+ * @note
+ * The function modifies the original string.
+ */
 int ReverseWordsInString(char* str);
+
+
+
+/**
+ * Counts the number of words in a null-terminated string.
+ *
+ * A word is defined as a sequence of non-space characters separated by
+ * whitespace characters (such as space, tab, newline, etc.).
+ *
+ * @param str
+ * Pointer to a null-terminated string to be analyzed.
+ *
+ * @return
+ * - Number of words in the string on success.
+ * - -1 if the input pointer is NULL.
+ *
+ * @note
+ * The function does not modify the input string.
+ */
+int CountWordsInString(char* str);
+
+/**
+ * Returns non-zero if the character is a whitespace character.
+ *
+ * @param c  Character to check.
+ * @return Non-zero if whitespace, otherwise 0.
+ */
+int IsWhiteSpace(char c);
 
 
 #endif
