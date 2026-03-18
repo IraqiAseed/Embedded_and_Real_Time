@@ -67,11 +67,11 @@ int MyAToI(char *str, int *number)
     int digit;
     int sign_factor = 1;
     int found_digit = 0;
-    ;
+
 
     while (*str != '\0')
     {
-        if (IsWhiteSpace(*str))
+        if  (IsWhiteSpace(*str))
         {
             if (found_digit == 0)
             {
@@ -333,6 +333,6 @@ int CountWordsInString(char *str)
         }
         str++;
     }
-
+ 
     return counter;
 }
