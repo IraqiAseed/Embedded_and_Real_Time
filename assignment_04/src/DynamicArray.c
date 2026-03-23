@@ -4,7 +4,7 @@
 
 DynamicArray *DynamicArrayCreate(int size, int blockSize)
 {
-    if (size <= 0 || blockSize <= 0)
+    if (size <= 0 || blockSize < 0)
     {
         return NULL;
     }
@@ -50,6 +50,11 @@ DynamicArrayError DynamicArrayInsert(DynamicArray *dynamicArrayPtr, int data)
 
     if (dynamicArrayPtr->dArraySize == dynamicArrayPtr->NumOfElements)
     {
+        if(dynamicArrayPtr->dArrayBlockSize == 0)
+        {
+            return DYNAMIC_ARRAY_OVERFLOW;
+        }
+        
         int *ptrNewDynamicArray = (int *)realloc(
             dynamicArrayPtr->dArray,
             sizeof(int) * (dynamicArrayPtr->dArraySize + dynamicArrayPtr->dArrayBlockSize));
