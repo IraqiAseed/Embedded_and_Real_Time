@@ -4,10 +4,11 @@
 
 struct Vector
 {
-    void **data;
-    size_t size;
-    size_t capacity;
-    size_t blockSize;
+    void **m_data;
+    size_t m_originalCapacity;
+    size_t m_size;
+    size_t m_capacity;
+    size_t m_blockSize;
 };
 
 /**
@@ -31,7 +32,6 @@ Vector *VectorCreate(size_t _initialCapacity, size_t _blockSize)
 
     if (vec == NULL)
     {
-        printf("fail to malloc vector\n");
 
         return NULL;
     }
@@ -41,23 +41,23 @@ Vector *VectorCreate(size_t _initialCapacity, size_t _blockSize)
 
     void **tmpData = NULL;
 
-    if (_initialCapacity > 0)
+    // if (_initialCapacity > 0) initialCapacity can be 0, we will allocate when we append the first element, so we will not allocate here, just set tmpData to NULL, and allocate in VectorAppend when we append the first element.
+    //{
+    tmpData = malloc(_initialCapacity * sizeof(void *));
+
+    if (tmpData == NULL)
     {
-        tmpData = malloc(_initialCapacity * sizeof(void *));
 
-        if (tmpData == NULL)
-        {
-
-            free(vec);
-            printf("fail to malloc vector data\n");
-            return NULL;
-        }
+        free(vec);
+        return NULL;
     }
+    //}
 
-    vec->data = tmpData;
-    vec->blockSize = _blockSize;
-    vec->capacity = _initialCapacity;
-    vec->size = 0;
+    vec->m_data = tmpData;
+    vec->m_blockSize = _blockSize;
+    vec->m_capacity = _initialCapacity;
+    vec->m_originalCapacity = _initialCapacity;
+    vec->m_size = 0;
 
     return vec;
 }
@@ -76,20 +76,20 @@ Vector *VectorCreate(size_t _initialCapacity, size_t _blockSize)
  */
 void VectorDestroy(Vector **_vector, void (*_elementDestroy)(void *_item))
 {
-    if(_vector == NULL || *_vector == NULL)
+    if (_vector == NULL || *_vector == NULL)
     {
         return;
     }
 
     if (_elementDestroy != NULL)
     {
-        for (size_t i = 0; i < (*_vector)->size; ++i)
+        for (size_t i = 0; i < (*_vector)->m_size; ++i)
         {
-            _elementDestroy((*_vector)->data[i]);
+            _elementDestroy((*_vector)->m_data[i]);
         }
     }
 
-    free((*_vector)->data);
+    free((*_vector)->m_data);
     free(*_vector);
     *_vector = NULL;
 }
@@ -101,78 +101,97 @@ VectorResult VectorAppend(Vector *_vector, void *_item)
     {
         return VECTOR_UNITIALIZED_ERROR;
     }
+    if (_item == NULL)
+    {
+        return VECTOR_INVALID_ARGUMENT_ERROR;
+    }
 
-    if (_vector->capacity == _vector->size)
+    if (_vector->m_capacity == _vector->m_size)
     {
 
-        if (_vector->blockSize == 0)
+        if (_vector->m_blockSize == 0)
         {
             return VECTOR_FIXED_SIZE_ERROR;
         }
 
-        void **tmp = realloc(_vector->data, sizeof(void *) * (_vector->capacity + _vector->blockSize));
+        void **tmp = realloc(_vector->m_data, sizeof(void *) * (_vector->m_capacity + _vector->m_blockSize));
 
         if (tmp == NULL)
         {
             return VECTOR_ALLOCATION_ERROR;
         }
 
-        _vector->data = tmp;
-        _vector->capacity += _vector->blockSize;
+        _vector->m_data = tmp;
+        _vector->m_capacity += _vector->m_blockSize;
     }
 
-    _vector->data[_vector->size] = _item;
-    _vector->size++;
+    _vector->m_data[_vector->m_size] = _item;
+    _vector->m_size++;
 
     return VECTOR_SUCCESS;
 }
-
-VectorResult VectorRemove(Vector *_vector, void **_pValue)
+static VectorResult VectorShrink(Vector *_vector)
 {
-    if (_vector == NULL || _pValue == NULL)
-    {
-        return VECTOR_UNITIALIZED_ERROR;
-    }
-    if (_vector->size == 0)
-    {
-        return VECTOR_INDEX_OUT_OF_BOUNDS_ERROR;
-    }
+    if (_vector->m_blockSize > 0 &&
+        _vector->m_capacity > _vector->m_originalCapacity &&
+        _vector->m_capacity - _vector->m_size >= 2 * _vector->m_blockSize)
 
-    void *ptr = _vector->data[_vector->size - 1];
-    *_pValue = ptr;
-    _vector->data[_vector->size - 1] = NULL;
-    _vector->size--;
-
-    // shrink
-    if (_vector->blockSize > 0 && _vector->capacity - _vector->size > _vector->blockSize)
     {
-        void **tmp = realloc(_vector->data, sizeof(void *) * (_vector->capacity - _vector->blockSize));
+        void **tmp = realloc(_vector->m_data, sizeof(void *) * (_vector->m_capacity - _vector->m_blockSize));
 
         if (tmp == NULL)
         {
-            return VECTOR_SUCCESS; // VECTOR_ALLOCATION_ERROR;
-            // we will ignore the realloc error when shrinking, just keep the old data and capacity
+            return VECTOR_ALLOCATION_ERROR;
         }
 
-        _vector->data = tmp;
-        _vector->capacity -= _vector->blockSize;
+        _vector->m_data = tmp;
+        _vector->m_capacity -= _vector->m_blockSize;
     }
+
+    return VECTOR_SUCCESS;
+}
+VectorResult VectorRemove(Vector *_vector, void **_pValue)
+{
+    if (_vector == NULL)
+    {
+        return VECTOR_UNITIALIZED_ERROR;
+    }
+    if (_pValue == NULL)
+    {
+        return VECTOR_INVALID_ARGUMENT_ERROR;
+    }
+    if (_vector->m_size == 0)
+    {
+        return VECTOR_SIZE_IS_ZERO_ERROR;
+    }
+
+    void *ptr = _vector->m_data[_vector->m_size - 1];
+    *_pValue = ptr;
+    //_vector->m_data[_vector->m_size - 1] = NULL;
+    _vector->m_size--;
+
+    VectorShrink(_vector);
+    // we will ignore the realloc error when shrinking, just keep the old data and capacity
 
     return VECTOR_SUCCESS;
 }
 
 VectorResult VectorGet(const Vector *_vector, size_t _index, void **_pValue)
 {
-    if (_vector == NULL || _pValue == NULL)
+    if (_vector == NULL)
     {
         return VECTOR_UNITIALIZED_ERROR;
     }
-    if (_index >= _vector->size)
+    if(_pValue == NULL)
+    {
+        return VECTOR_INVALID_ARGUMENT_ERROR;
+    }
+    if (_index >= _vector->m_size)
     {
         return VECTOR_INDEX_OUT_OF_BOUNDS_ERROR;
     }
 
-    *_pValue = _vector->data[_index];
+    *_pValue = _vector->m_data[_index];
 
     return VECTOR_SUCCESS;
 }
@@ -184,51 +203,48 @@ VectorResult VectorSet(Vector *_vector, size_t _index, void *_value)
     {
         return VECTOR_UNITIALIZED_ERROR;
     }
-    if (_index >= _vector->size)
+    if (_index >= _vector->m_size)
     {
         return VECTOR_INDEX_OUT_OF_BOUNDS_ERROR;
     }
 
-    _vector->data[_index] = _value;
+    _vector->m_data[_index] = _value;
 
     return VECTOR_SUCCESS;
 }
 
 size_t VectorSize(const Vector *_vector)
 {
-    return _vector == NULL ? 0 : _vector->size;
+    return _vector == NULL ? 0 : _vector->m_size;
 }
 
 size_t VectorCapacity(const Vector *_vector)
 {
-    return _vector == NULL ? 0 : _vector->capacity;
+    return _vector == NULL ? 0 : _vector->m_capacity;
 }
 
 size_t VectorForEach(const Vector *_vector, VectorElementAction _action, void *_context)
 {
-    if(_vector == NULL || _action == NULL)
+    if (_vector == NULL || _action == NULL)
     {
         return 0;
     }
-    
+
     void *element = NULL;
     size_t counter = 0;
-    
-    for (size_t i = 0; i < _vector->size; ++i)
+
+    for (size_t i = 0; i < _vector->m_size; ++i)
     {
-            
+
         if (VectorGet(_vector, i, &element) == VECTOR_SUCCESS)
         {
             counter++;
-            if(_action(element, i, _context) == 0)
+            if (_action(element, i, _context) == 0)
             {
                 break;
             }
-            
         }
     }
 
     return counter;
 }
-
-

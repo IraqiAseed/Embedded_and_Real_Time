@@ -12,6 +12,8 @@ typedef enum Vector_Result {
 	VECTOR_ALLOCATION_ERROR,				/**< realloc error on grow/shrink   */
 	VECTOR_INDEX_OUT_OF_BOUNDS_ERROR,
     VECTOR_FIXED_SIZE_ERROR,				/**< Vector is of fixed size, can't grow */
+	VECTOR_SIZE_IS_ZERO_ERROR,
+	VECTOR_INVALID_ARGUMENT_ERROR
 	/* Add more as needed by your implementation */
 } VectorResult;
 
