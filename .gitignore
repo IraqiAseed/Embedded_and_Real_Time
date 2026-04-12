@@ -1,3 +1,8 @@
 *.out
 *.o
 .vscode/
+app
+*.so
+bin/
+build/
+lib/
