@@ -127,7 +127,7 @@ Person *ListRemoveByKey(Person *_head, int _key, Person **_p)
     return _head;
 }
 
-static void PersonPrint(const Person *p)
+ void PersonPrint(const Person *p)
 {
     if (p == NULL)
         return;
@@ -172,4 +172,91 @@ Person *PersonCreate(int _id, const char *_name, int _age)
 void PersonDestroy(Person *_p)
 {
     free(_p);
+}
+Person* ListGetLastNode(Person* _head)
+{
+    if(_head == NULL)
+    {
+        return NULL;
+    }
+
+    if(_head->m_next == NULL)
+    {
+        return _head;
+    }
+
+    ListGetLastNode(_head->m_next);
+
+    return ListGetLastNode(_head->m_next);
+}
+
+Person* ListReverse(Person* _head)
+{
+    if(_head == NULL)
+    {
+        return NULL;
+    }
+
+    if(_head->m_next == NULL)
+    {
+        return _head;
+    }
+
+    _head->m_next = ListReverse(_head->m_next);
+
+    return _head;
+}
+
+
+Person* ListInsertByKeyRec(Person* _head, int _key, Person* _p)
+{
+    if (_p == NULL || _key != _p->m_id)
+    {
+        return _head;
+    }
+
+    if (_head == NULL)
+    {
+        _p->m_next = NULL;
+        return _p;
+    }
+
+    if (_p->m_id < _head->m_id)
+    {
+        _p->m_next = _head;
+        return _p;
+    }
+
+    if (_p->m_id == _head->m_id)
+    {
+        return _head;
+    }
+
+    _head->m_next = ListInsertByKeyRec(_head->m_next, _key, _p);
+    return _head;
+}
+
+Person* ListRemoveByKeyRec(Person* _head, int _key, Person** _p)
+{
+    if (_p == NULL)
+    {
+        return _head;
+    }
+
+    if (_head == NULL)
+    {
+        *_p = NULL;
+        return NULL;
+    }
+
+    if (_head->m_id == _key)
+    {
+        Person* next = _head->m_next;
+        *_p = _head;
+        _head->m_next = NULL;
+        return next;
+    }
+
+    _head->m_next = ListRemoveByKeyRec(_head->m_next, _key, _p);
+    return _head;
 }

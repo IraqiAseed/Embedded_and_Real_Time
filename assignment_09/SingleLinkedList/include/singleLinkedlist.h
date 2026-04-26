@@ -55,7 +55,7 @@ Person* ListRemoveHead(Person* _head, Person** _item);
  */
 Person* ListInsertByKey(Person* _head, int _key, Person* _p);
 
-//Person* ListInsertByKeyRec(Person* _head, int _key, Person* _p);
+Person* ListInsertByKeyRec(Person* _head, int _key, Person* _p);
 
 
 /**
@@ -72,7 +72,10 @@ Person* ListInsertByKey(Person* _head, int _key, Person* _p);
  */
 Person* ListRemoveByKey(Person* _head, int _key, Person* *_p);
 
-//Person* ListRemoveByKeyRec(Person* _head, int _key, Person**_p);
+Person* ListRemoveByKeyRec(Person* _head, int _key, Person**_p);
+
+Person* ListGetLastNode(Person* _head);
+
 
 /**
  * @brief Print all elements in the list.
@@ -104,5 +107,8 @@ Person* PersonCreate(int _id, const char* _name, int _age);
  * @note Does not affect other nodes.
  */
 void PersonDestroy(Person* _p);
+
+ void PersonPrint(const Person *p);
+
 
 #endif // SINGLELINKEDLIST_H_
