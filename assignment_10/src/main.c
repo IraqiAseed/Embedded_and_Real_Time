@@ -152,5 +152,7 @@ int main()
 
     printf("Test 9 - ForEach Success\n");
 
+    ListDestroy(&list, NULL);
+
     return 0;
 }
