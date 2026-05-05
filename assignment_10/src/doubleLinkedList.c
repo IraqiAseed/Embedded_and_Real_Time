@@ -251,74 +251,74 @@ ListItr ListItrInsertBefore(ListItr _itr, void *_element)
     return (ListItr)InsertBefore(node, _element);
 }
 
-    void *ListItrRemove(ListItr _itr)
+void *ListItrRemove(ListItr _itr)
+{
+    Node *node = (Node *)_itr;
+
+    if (node == NULL ||
+        node->m_next == node || // tail
+        node->m_prev == node)   // head
     {
-        Node *node = (Node *)_itr;
-
-        if (node == NULL ||
-            node->m_next == node || // tail
-            node->m_prev == node)   // head
-        {
-            return NULL;
-        }
-
-        return RemoveNode(node);
+        return NULL;
     }
 
-    size_t ListSize(const List *_list)
+    return RemoveNode(node);
+}
+
+size_t ListSize(const List *_list)
+{
+    size_t size = 0;
+
+    if (_list == NULL)
     {
-        size_t size = 0;
-
-        if (_list == NULL)
-        {
-            return size;
-        }
-
-        for (ListItr itr = ListItrBegin(_list);
-             itr != ListItrEnd(_list);
-             itr = ListItrNext(itr))
-        {
-            ++size;
-        }
-
         return size;
     }
 
-    size_t ListIsEmpty(List * _list)
+    for (ListItr itr = ListItrBegin(_list);
+         itr != ListItrEnd(_list);
+         itr = ListItrNext(itr))
     {
-        if (_list == NULL)
-        {
-            return 1;
-        }
-
-        return (_list->m_head.m_next == &_list->m_tail) ? 1 : 0;
+        ++size;
     }
 
-    ListItr ListItrForEach(ListItr _begin, ListItr _end, ListActionFunction _action, void *_context)
+    return size;
+}
+
+size_t ListIsEmpty(List *_list)
+{
+    if (_list == NULL)
     {
-        if (_begin == NULL || _end == NULL || _action == NULL)
-        {
-            return NULL;
-        }
-
-        ListItr current = _begin;
-
-        while (current != _end)
-        {
-            void *data = ListItrGet(current);
-
-            if (data == NULL)
-            {
-                break; // range validation
-            }
-
-            if (_action(data, _context) == 0)
-            {
-                break;
-            }
-
-            current = ListItrNext(current);
-        }
-
-        return current;
+        return 1;
     }
+
+    return (_list->m_head.m_next == &_list->m_tail) ? 1 : 0;
+}
+
+ListItr ListItrForEach(ListItr _begin, ListItr _end, ListActionFunction _action, void *_context)
+{
+    if (_begin == NULL || _end == NULL || _action == NULL)
+    {
+        return NULL;
+    }
+
+    ListItr current = _begin;
+
+    while (current != _end)
+    {
+        void *data = ListItrGet(current);
+
+        if (data == NULL)
+        {
+            break; // range validation
+        }
+
+        if (_action(data, _context) == 0)
+        {
+            break;
+        }
+
+        current = ListItrNext(current);
+    }
+
+    return current;
+}
