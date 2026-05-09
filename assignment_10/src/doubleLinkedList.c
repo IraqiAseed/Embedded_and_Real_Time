@@ -193,10 +193,10 @@ ListItr ListItrPrev(ListItr _itr)
     }
     // if node is the first real node, its prev is head.
     // Do not expose head to the user, so return the current iterator.
-    if (node->m_prev->m_prev == node->m_prev)
-    {
-        return _itr;
-    }
+    //if (node->m_prev->m_prev == node->m_prev)
+   // {
+   //     return _itr;
+   // }
 
     return (ListItr)node->m_prev;
 }
