@@ -343,7 +343,7 @@ void *BSTreeItrRemove(BSTreeItr _it)
     Node *successor;
     Node *child;
 
-    // case 3 - node has two children
+    // case 1 - node has two children
     if (nodeToBeRemoved->m_left != NULL && nodeToBeRemoved->m_right != NULL)
     {
         successor = FindLeftMost(nodeToBeRemoved->m_right);
@@ -355,16 +355,20 @@ void *BSTreeItrRemove(BSTreeItr _it)
         nodeToBeRemoved = successor;
     }
 
-    // case 2 - node has one child at most
+    //After case 1, nodeToBeRemoved is either:
+    // 1.   the original node with 0 or 1 child
+    // 2.   if entered case 1, the successor 
+    //      which has no left child but may have a right child
+    
+    // case 2 - node has at most one child
     if (nodeToBeRemoved->m_left != NULL)
     {
         child = nodeToBeRemoved->m_left;
     }
-    else
+    //case 3 -  Either right child exists, or node is a leaf and child is NULL
+    else 
     {
         child = nodeToBeRemoved->m_right;
-        // can be NULL for case 1 (no children)
-        // can also be the only child for case 2
     }
 
     ReplaceNodeInParent(nodeToBeRemoved, child);
