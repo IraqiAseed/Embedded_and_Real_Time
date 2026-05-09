@@ -84,14 +84,14 @@ BSTreeItr BSTreeInsert(BSTree *_tree, void *_item)
 
     while (current != NULL)
     {
+        parent = current;
         if (_tree->comparator(_item, current->m_data))
         {
-            parent = current;
+            
             current = current->m_left;
         }
         else if (_tree->comparator(current->m_data, _item))
         {
-            parent = current;
             current = current->m_right;
         }
         else
