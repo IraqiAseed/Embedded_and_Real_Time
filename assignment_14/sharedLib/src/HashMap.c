@@ -305,3 +305,52 @@ static size_t nextPrime(size_t number)
 
     return num;
 }
+
+size_t HashMap_ForEach(const HashMap *_map,
+                       KeyValueActionFunction _action,
+                       void *_context)
+{
+
+    size_t i;
+    size_t count = 0;
+
+    if (_map == NULL || _map->m_data == NULL || _action == NULL)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < _map->m_capacity; ++i)
+    {
+        ListItr itr;
+        ListItr end;
+
+        if (_map->m_data[i] == NULL)
+        {
+            continue;
+        }
+
+        itr = ListItrBegin(_map->m_data[i]);
+        end = ListItrEnd(_map->m_data[i]);
+
+        while (itr != end)
+        {
+            Pair *pair = (Pair *)ListItrGet(itr);
+
+            if (pair != NULL)
+            {
+                ++count;
+
+                if (_action(pair->m_key,
+                            pair->m_value,
+                            _context) == 0)
+                {
+                    return count;
+                }
+            }
+
+            itr = ListItrNext(itr);
+        }
+    }
+
+    return count;
+}
