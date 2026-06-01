@@ -1,11 +1,13 @@
-#include "client_manager.h"
-#include "client_chat.h"
-#include "client.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+
+#include "client_manager.h"
+#include "client_chat.h"
+#include "client_networking.h"
+#include "client.h"
+
 
 extern char g_pendingGroupName[MAX_GROUP_NAME_SIZE + 1]; //TODO remove
 extern char g_loggedInUsername[MAX_USERNAME_SIZE + 1];  //TODO remove

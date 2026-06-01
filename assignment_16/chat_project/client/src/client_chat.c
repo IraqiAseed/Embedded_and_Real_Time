@@ -1,5 +1,4 @@
-#include "./../include/client_chat.h"
-
+#include "client_chat.h"
 #include "protocol.h"
 #include "multicast.h"
 #include "chat_ipc.h"

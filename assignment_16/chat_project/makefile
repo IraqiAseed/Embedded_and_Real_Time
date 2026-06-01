@@ -20,6 +20,7 @@ PROTOCOL_OBJ = $(BUILD_DIR)/protocol.o
 CLIENT_OBJ = $(BUILD_DIR)/client.o
 CLIENT_CHAT_OBJ = $(BUILD_DIR)/client_chat.o
 CLIENT_MANAGER_OBJ = $(BUILD_DIR)/client_manager.o
+CLIENT_NETWORKING_OBJ = $(BUILD_DIR)/client_networking.o
 
 SERVER_OBJ = $(BUILD_DIR)/server.o
 USER_MANAGER_OBJ = $(BUILD_DIR)/user_manager.o
@@ -50,6 +51,8 @@ $(CLIENT_CHAT_OBJ): client/src/client_chat.c client/include/client_chat.h | $(BU
 	$(CC) $(CFLAGS) -c $< -o $@
 $(CLIENT_MANAGER_OBJ): $(CLIENT_SRC_DIR)/client_manager.c $(CLIENT_INC_DIR)/client_manager.h
 	$(CC) $(CFLAGS) -c $< -o $@
+$(CLIENT_NETWORKING_OBJ): $(CLIENT_SRC_DIR)/client_networking.c $(CLIENT_INC_DIR)/client_networking.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SERVER_OBJ): $(SRC_DIR)/server.c $(INC_DIR)/protocol.h $(INC_DIR)/user_manager.h $(INC_DIR)/group_manager.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -61,7 +64,7 @@ $(MULTICAST_OBJ): $(SRC_DIR)/multicast.c $(INC_DIR)/multicast.h | $(BUILD_DIR)
 $(CHAT_IPC_OBJ): $(SRC_DIR)/chat_ipc.c $(INC_DIR)/chat_ipc.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(CLIENT_BIN): $(CLIENT_OBJ) $(CLIENT_MANAGER_OBJ) $(CLIENT_CHAT_OBJ) $(PROTOCOL_OBJ) $(MULTICAST_OBJ) $(CHAT_IPC_OBJ) | $(BIN_DIR)
+$(CLIENT_BIN): $(CLIENT_OBJ) $(CLIENT_NETWORKING_OBJ) $(CLIENT_MANAGER_OBJ) $(CLIENT_CHAT_OBJ) $(PROTOCOL_OBJ) $(MULTICAST_OBJ) $(CHAT_IPC_OBJ) | $(BIN_DIR)
 	$(CC) $^ $(LDFLAGS) -o $@
 
 $(SERVER_BIN): $(SERVER_OBJ) $(PROTOCOL_OBJ) $(USER_MANAGER_OBJ) $(GROUP_MANAGER_OBJ)| $(BIN_DIR)
