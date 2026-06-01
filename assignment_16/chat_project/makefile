@@ -4,11 +4,13 @@ SRC_DIR = src
 INC_DIR = include
 BUILD_DIR = build
 BIN_DIR = bin
+CLIENT_SRC_DIR = client/src
+CLIENT_INC_DIR = client/include
 
 DS_INC_DIR = external/ds/include
 DS_LIB_DIR = external/ds/lib
 
-CFLAGS = -Wall -Wextra -g -I$(INC_DIR) -I$(DS_INC_DIR)
+CFLAGS = -Wall -Wextra -g -I$(INC_DIR) -I$(CLIENT_INC_DIR) -I$(DS_INC_DIR)
 LDFLAGS = -L$(DS_LIB_DIR) -Wl,-rpath,'$$ORIGIN/../external/ds/lib' -lds
 
 CLIENT_BIN = $(BIN_DIR)/client.out
@@ -39,7 +41,7 @@ $(PROTOCOL_OBJ): $(SRC_DIR)/protocol.c $(INC_DIR)/protocol.h | $(BUILD_DIR)
 $(USER_MANAGER_OBJ): $(SRC_DIR)/user_manager.c $(INC_DIR)/user_manager.h $(INC_DIR)/protocol.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(CLIENT_OBJ): $(SRC_DIR)/client.c $(INC_DIR)/protocol.h | $(BUILD_DIR)
+$(CLIENT_OBJ): $(CLIENT_SRC_DIR)/client.c $(CLIENT_INC_DIR)/client.h $(INC_DIR)/protocol.h | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SERVER_OBJ): $(SRC_DIR)/server.c $(INC_DIR)/protocol.h $(INC_DIR)/user_manager.h $(INC_DIR)/group_manager.h | $(BUILD_DIR)

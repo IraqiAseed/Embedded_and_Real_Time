@@ -17,6 +17,8 @@
 #include "./../include/chat_ipc.h"
 #include <stdlib.h>
 
+#include "./../include/client.h"
+
 #define MAX_ACTIVE_GROUPS 100
 static char g_loggedInUsername[MAX_USERNAME_SIZE + 1];
 typedef struct ChatSession
