@@ -1,183 +1,96 @@
+#include "server_manager.h"
+#include "server_networking.h"
+
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // exit
-#include <sys/types.h>
-#include <sys/socket.h> // socket bind listen accept
-#include <unistd.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <unistd.h>
 
-#include <netinet/in.h> // sockaddr_in
-#include <arpa/inet.h>  // htons inet_ntoa
+static int HandleClientRequest(int _clientSocket,
+                               const TcpPacket *_packet,
+                               UserManager *_userManager,
+                               GroupManager *_groupManager);
 
-#include "./../include/server.h"
-#include "./../include/protocol.h"
+static int HandleRegisterRequest(int _clientSocket,
+                                 const TcpPacket *_packet,
+                                 UserManager *_userManager);
 
-#define SERVER_PORT 8080
-#define BACKLOG 10
-#define MAX_CLIENTS 100
-#define MAX_FDS (MAX_CLIENTS + 1)
-#define BUFFER_SIZE 1024
+static int HandleLoginRequest(int _clientSocket,
+                              const TcpPacket *_packet,
+                              UserManager *_userManager);
 
-int CreateSocket()
+static int HandleLogoutRequest(int _clientSock,
+                               const TcpPacket *_packet,
+                               UserManager *_userManager,
+                               GroupManager *_groupManager);
+
+static int HandleCreateGroupRequest(int clientSock,
+                                    const TcpPacket *_packet,
+                                    UserManager *userManager,
+                                    GroupManager *groupManager);
+
+static int HandleJoinGroupRequest(int clientSock,
+                                  const TcpPacket *_packet,
+                                  UserManager *userManager,
+                                  GroupManager *groupManager);
+
+static int HandleLeaveGroupRequest(int clientSock,
+                                   const TcpPacket *_packet,
+                                   UserManager *userManager,
+                                   GroupManager *groupManager);
+
+static int HandleExitRequest(int _clientSocket,
+                             const TcpPacket *_packet,
+                             UserManager *_userManager);
+
+static int HandleClientRequest(int _clientSocket,
+                               const TcpPacket *_packet,
+                               UserManager *_userManager,
+                               GroupManager *_groupManager)
 {
-    int serverSock = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSock < 0)
-    {
-        perror("socket failed");
-        return -1;
-    }
-
-    int opt = 1;
-    if (setsockopt(serverSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-    {
-        perror("setsockopt failed");
-        close(serverSock);
-        return -1;
-    }
-
-    if (SetNonBlocking(serverSock) < 0)
-    {
-        perror("socket non blocking failed");
-        close(serverSock);
-        return -1;
-    }
-
-    return serverSock;
-}
-
-int BindSocket(int sock, int port)
-{
-    struct sockaddr_in addr;
-
-    memset(&addr, 0, sizeof(addr));
-
-    addr.sin_family = AF_INET;
-    addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(port);
-
-    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        perror("bind");
-        return -1;
-    }
-
-    return 0;
-}
-int StartListen(int sock, int backlog)
-{
-    if (listen(sock, backlog) < 0)
-    {
-        perror("listen");
-        return -1;
-    }
-
-    return 0;
-}
-
-int AcceptNewClient(int listenerSock)
-{
-    struct sockaddr_in clientAddr;
-    socklen_t clientLen = sizeof(clientAddr);
-
-    int clientSock = accept(listenerSock,
-                            (struct sockaddr *)&clientAddr,
-                            &clientLen);
-
-    if (clientSock < 0)
-    {
-        if (errno == EAGAIN || errno == EWOULDBLOCK)
-        {
-            return -1;
-        }
-
-        perror("accept failed");
-        return -1;
-    }
-
-    /*
-    TODO:
-    RecvAll + non-blocking sockets is not fully correct.
-    Need per-client receive state machine later.
-    */
-
-    if (SetNonBlocking(clientSock) < 0)
-    {
-        close(clientSock);
-        return -1;
-    }
-
-    printf("Client connected fd=%d ip=%s port=%d\n",
-           clientSock,
-           inet_ntoa(clientAddr.sin_addr),
-           ntohs(clientAddr.sin_port));
-
-    return clientSock;
-}
-static int RecvAll(int sock, void *buffer, size_t size)
-{
-    size_t total = 0;
-    char *ptr = buffer;
-
-    while (total < size)
-    {
-        ssize_t bytesRead = recv(sock, ptr + total, size - total, 0);
-
-        if (bytesRead < 0)
-        {
-            return -1;
-        }
-
-        if (bytesRead == 0)
-        {
-            return 0; /* peer disconnected */
-        }
-
-        total += bytesRead;
-    }
-
-    return 1;
-}
-int RecvTcpPacket(int sock, TcpPacket *_packet)
-{
-    int result;
-
     if (_packet == NULL)
     {
         return -1;
     }
 
-    result = RecvAll(sock, &_packet->tag, sizeof(_packet->tag));
-    if (result <= 0)
+    switch (_packet->tag)
     {
-        return result;
-    }
+    case TAG_REGISTER_REQUEST:
+        printf("Received Register Request\n");
+        return HandleRegisterRequest(_clientSocket, _packet, _userManager);
 
-    result = RecvAll(sock, &_packet->length, sizeof(_packet->length));
-    if (result <= 0)
-    {
-        return result;
-    }
+    case TAG_LOGIN_REQUEST:
+        printf("Received Login Request\n");
+        return HandleLoginRequest(_clientSocket, _packet, _userManager);
 
-    result = RecvAll(sock, _packet->value, _packet->length);
-    if (result <= 0)
-    {
-        return result;
-    }
+    case TAG_LOGOUT_REQUEST:
+        printf("Received Logout Request\n");
+        return HandleLogoutRequest(_clientSocket, _packet, _userManager, _groupManager);
 
-    return sizeof(_packet->tag) + sizeof(_packet->length) + _packet->length;
-}
+    case TAG_EXIT_REQUEST:
+        printf("Received Exit Request\n");
+        return HandleExitRequest(_clientSocket, _packet, _userManager);
 
-int SendTcpPacket(int _clientSocket, const TcpPacket *_packet)
-{
+    case TAG_CREATE_GROUP_REQUEST:
+        printf("Received Create Group Request\n");
+        return HandleCreateGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
 
-    if (_clientSocket < 0 || _packet == NULL)
-    {
+    case TAG_JOIN_GROUP_REQUEST:
+        printf("Received Join Group Request\n");
+        return HandleJoinGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
+
+    case TAG_LEAVE_GROUP_REQUEST:
+        printf("Received Leave Group Request\n");
+        return HandleLeaveGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
+
+    default:
+        printf("Received unknown packet with tag=%u\n", _packet->tag);
         return -1;
     }
 
-    return send(_clientSocket, _packet, GetTcpPacketSize(_packet), 0);
+    return 0;
 }
+
 static int HandleRegisterRequest(int _clientSocket, const TcpPacket *_packet,
                                  UserManager *_userManager)
 {
@@ -548,53 +461,6 @@ static int HandleLeaveGroupRequest(int clientSock,
 
     return status == RESPONSE_STATUS_OK ? 0 : -1;
 }
-static int HandleClientRequest(int _clientSocket,
-                               TcpPacket *_packet,
-                               UserManager *_userManager,
-                               GroupManager *_groupManager)
-{
-    if (_packet == NULL)
-    {
-        return -1;
-    }
-
-    switch (_packet->tag)
-    {
-    case TAG_REGISTER_REQUEST:
-        printf("Received Register Request\n");
-        return HandleRegisterRequest(_clientSocket, _packet, _userManager);
-
-    case TAG_LOGIN_REQUEST:
-        printf("Received Login Request\n");
-        return HandleLoginRequest(_clientSocket, _packet, _userManager);
-
-    case TAG_LOGOUT_REQUEST:
-        printf("Received Logout Request\n");
-        return HandleLogoutRequest(_clientSocket, _packet, _userManager, _groupManager);
-
-    case TAG_EXIT_REQUEST:
-        printf("Received Exit Request\n");
-        return HandleExitRequest(_clientSocket, _packet, _userManager);
-
-    case TAG_CREATE_GROUP_REQUEST:
-        printf("Received Create Group Request\n");
-        return HandleCreateGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
-
-    case TAG_JOIN_GROUP_REQUEST:
-        printf("Received Join Group Request\n");
-        return HandleJoinGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
-
-    case TAG_LEAVE_GROUP_REQUEST:
-        printf("Received Leave Group Request\n");
-        return HandleLeaveGroupRequest(_clientSocket, _packet, _userManager, _groupManager);
-
-    default:
-        printf("Received unknown packet with tag=%u\n", _packet->tag);
-        return -1;
-    }
-
-    return 0;
-}
 
 int ProcessClient(int _clientSock, fd_set *_masterSet, UserManager *_userManager, GroupManager *groupManager)
 {
@@ -648,146 +514,4 @@ int ProcessClient(int _clientSock, fd_set *_masterSet, UserManager *_userManager
     }
 
     return 1;
-}
-int UpdateMaxFd(fd_set *masterSet, int currentMaxFd)
-{
-    int fd;
-
-    for (fd = currentMaxFd; fd >= 0; fd--)
-    {
-        if (FD_ISSET(fd, masterSet))
-        {
-            return fd;
-        }
-    }
-
-    return -1;
-}
-void CloseAllSockets(fd_set *masterSet, int maxFd)
-{
-    for (int fd = 0; fd <= maxFd; fd++)
-    {
-        if (FD_ISSET(fd, masterSet))
-        {
-            close(fd);
-        }
-    }
-}
-int SetNonBlocking(int sock)
-{
-    int flags = fcntl(sock, F_GETFL, 0);
-
-    if (flags < 0)
-    {
-        perror("fcntl F_GETFL");
-        return -1;
-    }
-
-    if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) < 0)
-    {
-        perror("fcntl F_SETFL");
-        return -1;
-    }
-
-    return 0;
-}
-
-int main(void)
-{
-
-    fd_set masterSet;
-    fd_set tempSet;
-    UserManager *userManager;
-    GroupManager *groupManager;
-
-    int listenerSock = CreateSocket(); // listner socket
-    if (listenerSock < 0)
-    {
-        return 1;
-    }
-
-    if (BindSocket(listenerSock, SERVER_PORT) < 0)
-    {
-        close(listenerSock);
-        return 1;
-    }
-
-    if (StartListen(listenerSock, BACKLOG) < 0)
-    {
-        close(listenerSock);
-        return 1;
-    }
-
-    userManager = UserManagerCreate();
-
-    if (userManager == NULL)
-    {
-        printf("Failed to create UserManager\n");
-        close(listenerSock);
-        return 1;
-    }
-
-    groupManager = GroupManagerCreate();
-
-    if (groupManager == NULL)
-    {
-        UserManagerDestroy(&userManager);
-        close(listenerSock);
-        return 1;
-    }
-
-    FD_ZERO(&masterSet);
-    FD_ZERO(&tempSet);
-
-    FD_SET(listenerSock, &masterSet);
-
-    int maxFd = listenerSock;
-
-    while (1)
-    {
-        tempSet = masterSet;
-
-        int activity = select(maxFd + 1, &tempSet, NULL, NULL, NULL);
-
-        if (activity < 0)
-        {
-            perror("select failed");
-            break;
-        }
-
-        for (int fd = 0; fd <= maxFd; fd++)
-        {
-            if (FD_ISSET(fd, &tempSet))
-            {
-                // There is at least one pending connection waiting in the kernel accept queue.
-                if (fd == listenerSock)
-                {
-                    int clientSock = AcceptNewClient(listenerSock); /* new connection */
-
-                    if (clientSock >= 0)
-                    {
-                        FD_SET(clientSock, &masterSet);
-
-                        if (clientSock > maxFd)
-                        {
-                            maxFd = clientSock;
-                        }
-                    }
-                }
-                else /* existing client sent data */
-                {
-                    int result = ProcessClient(fd, &masterSet, userManager, groupManager);
-
-                    if (result <= 0 && fd == maxFd)
-                    {
-                        maxFd = UpdateMaxFd(&masterSet, maxFd);
-                    }
-                }
-            }
-        }
-    }
-
-    CloseAllSockets(&masterSet, maxFd);
-    UserManagerDestroy(&userManager);
-    GroupManagerDestroy(&groupManager);
 }

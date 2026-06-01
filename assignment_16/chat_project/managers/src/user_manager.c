@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
-#include "./../include/user_manager.h"
-#include "./../include/protocol.h"
+#include "user_manager.h"
+#include "protocol.h"
 
 typedef struct User
 {

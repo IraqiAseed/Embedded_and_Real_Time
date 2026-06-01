@@ -17,8 +17,13 @@
 //max number of groups that can be created 0-255,
 //if more need to change FillMulticastIpQueue 
 #define MAX_GROUPS 100              
-
+#define MAX_ACTIVE_GROUPS 100
 #define DEFAULT_MULTICAST_PORT 5000
 #define BUFFER_SIZE 1024
+
+
+//server limitations
+#define MAX_CLIENTS 100
+#define MAX_FDS (MAX_CLIENTS + 1)
 
 #endif // LIMITATION_H_

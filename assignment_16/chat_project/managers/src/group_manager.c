@@ -1,6 +1,4 @@
-#include "./../include/group_manager.h"
-// #include"./../external/ds/include/HashMap.h"
-// #include"./../external/ds/include/circularQueue.h"
+#include "group_manager.h"
 #include "HashMap.h"
 #include "circularQueue.h"
 #include "doubleLinkedList.h"

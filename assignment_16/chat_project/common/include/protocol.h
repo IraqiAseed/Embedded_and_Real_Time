@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "./limitation.h"
+#include "limitation.h"
 
 typedef enum Tag
 {

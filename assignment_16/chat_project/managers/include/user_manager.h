@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 #include "limitation.h"
-#include "./../external/ds/include/HashMap.h"
+#include "HashMap.h"
 #include "user_manager.h"
 
 typedef struct UserManager UserManager;

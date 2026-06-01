@@ -9,8 +9,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include "limitation.h"
 
-#define MAX_ACTIVE_GROUPS 100
 
 typedef struct ChatSession
 {
