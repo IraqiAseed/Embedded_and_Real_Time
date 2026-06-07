@@ -20,6 +20,7 @@ struct GroupManager
 {
     HashMap *m_groupname_to_group; /* key: group name, value: Group* */
     Queue *m_freeMulticastIps;     /* available multicast IPs */
+    int m_nextMulticastPort;
 };
 
 static int FillMulticastIpQueue(Queue *_queue)
@@ -80,6 +81,8 @@ GroupManager *GroupManagerCreate(void)
     {
         return NULL;
     }
+
+    manager->m_nextMulticastPort = DEFAULT_MULTICAST_PORT;
 
     manager->m_groupname_to_group = HashMap_Create(MAX_GROUPS, GroupHashFunction,
                                                    GroupEqualityFunction);
@@ -152,7 +155,7 @@ GroupManagerResult GroupManagerCreateGroup(GroupManager *_manager, const char *_
 
     strcpy(group->m_groupName, _groupName);
     group->m_multicastIp = ip;
-    group->m_multicastPort = DEFAULT_MULTICAST_PORT;
+    group->m_multicastPort = _manager->m_nextMulticastPort++;
     group->m_memberCount = 0;
 
     if (HashMap_Insert(_manager->m_groupname_to_group,

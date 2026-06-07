@@ -9,10 +9,6 @@
 #include "server_manager.h"
 #include "protocol.h"
 
-#define SERVER_PORT 8080
-
-
-
 
 
 
